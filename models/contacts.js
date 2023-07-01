@@ -1,14 +1,76 @@
-// const fs = require('fs/promises')
+const fs = require("node:fs/promises");
+const path = require("node:path");
+const { nanoid } = require("nanoid");
 
-const listContacts = async () => {}
+const contactsPath = path.join(__dirname, "contacts.json");
+console.log(contactsPath);
 
-const getContactById = async (contactId) => {}
+async function listContacts() {
+  const data = await fs.readFile(contactsPath, "utf-8");
+  return JSON.parse(data);
+}
 
-const removeContact = async (contactId) => {}
+async function writeFile(contacts) {
+  await fs.writeFile(contactsPath, JSON.stringify(contacts));
+}
 
-const addContact = async (body) => {}
+async function getContactById(contactId) {
+  const contacts = await listContacts();
+  const contact = contacts.find((contact) => contact.id === contactId);
+  return contact;
+}
 
-const updateContact = async (contactId, body) => {}
+async function removeContact(contactId) {
+  const contacts = await listContacts();
+  const removedContact = contacts.find((contact) => contact.id === contactId);
+  if (!removedContact) return null;
+
+  const updatedContacts = contacts.filter(
+    (contact) => contact.id !== contactId
+  );
+
+  const contactsJSON = JSON.stringify(updatedContacts, null, 2);
+  await fs.writeFile(contactsPath, contactsJSON);
+
+  return removedContact;
+}
+
+async function addContact(name, email, phone) {
+  const contacts = await listContacts();
+  const newContact = {
+    id: nanoid(),
+    name,
+    email,
+    phone,
+  };
+  contacts.push(newContact);
+
+  const contactsJSON = JSON.stringify(contacts, null, 2);
+  await fs.writeFile(contactsPath, contactsJSON);
+
+  return newContact;
+}
+async function updateContact(contactId, updatedFields) {
+  const contacts = await listContacts();
+  const contactIndex = contacts.findIndex(
+    (contact) => contact.id === contactId
+  );
+
+  if (contactIndex === -1) {
+    return null;
+  }
+
+  const updatedContact = {
+    ...contacts[contactIndex],
+    ...updatedFields,
+  };
+
+  contacts[contactIndex] = updatedContact;
+
+  await writeFile(contacts);
+
+  return updatedContact;
+}
 
 module.exports = {
   listContacts,
@@ -16,4 +78,4 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
-}
+};
