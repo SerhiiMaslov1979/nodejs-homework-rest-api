@@ -72,10 +72,26 @@ async function updateContact(contactId, updatedFields) {
   return updatedContact;
 }
 
+// models/contacts.js
+
+async function updateStatusContact(contactId, favorite) {
+  const contacts = await listContacts();
+  const contact = contacts.find((contact) => contact.id === contactId);
+
+  if (contact) {
+    contact.favorite = favorite;
+    await writeFile(contacts);
+    return contact;
+  } else {
+    return null;
+  }
+}
+
 module.exports = {
   listContacts,
   getContactById,
   removeContact,
   addContact,
   updateContact,
+  updateStatusContact,
 };
