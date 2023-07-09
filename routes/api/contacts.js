@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const contacts = require("../../models/contacts");
+const contacts = require("../../models/contact");
 const Joi = require("joi");
 
 // Схема валідації для створення нового контакту
