@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const contacts = require("../../models/contacts"); // Імпортуйте ваш модуль contact.js
+const contacts = require("../../models/contact");
 const Joi = require("joi");
 
 // Схема валідації для створення нового контакту
@@ -10,13 +10,11 @@ const createContactSchema = Joi.object({
   phone: Joi.string().required(),
 });
 
-// Раут для отримання всіх контактів
 router.get("/", async (req, res) => {
   const allContacts = await contacts.listContacts();
   res.json(allContacts);
 });
 
-// Раут для отримання контакту за id
 router.get("/:id", async (req, res) => {
   const contactId = req.params.id;
   const contact = await contacts.getContactById(contactId);
@@ -28,7 +26,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Раут для створення нового контакту
 router.post("/", async (req, res, next) => {
   const { name, email, phone } = req.body;
 
@@ -45,7 +42,6 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-// Раут для видалення контакту за id
 router.delete("/:id", async (req, res) => {
   const contactId = req.params.id;
   const deletedContact = await contacts.removeContact(contactId);
@@ -57,7 +53,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Раут для оновлення контакту за id
 router.put("/:id", async (req, res) => {
   const contactId = req.params.id;
   const updatedFields = req.body;
@@ -74,6 +69,30 @@ router.put("/:id", async (req, res) => {
       res.json(updatedContact);
     } else {
       res.status(404).json({ message: "Not found" });
+    }
+  }
+});
+
+router.patch("/:id/favorite", async (req, res) => {
+  const contactId = req.params.id;
+  const { favorite } = req.body;
+
+  if (typeof favorite === "undefined") {
+    res.status(400).json({ message: "missing field favorite" });
+  } else {
+    try {
+      const updatedContact = await contacts.updateStatusContact(
+        contactId,
+        favorite
+      );
+
+      if (updatedContact) {
+        res.json(updatedContact);
+      } else {
+        res.status(404).json({ message: "Not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
   }
 });
