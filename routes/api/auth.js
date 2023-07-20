@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 const { User } = require("../../models/userModel");
 
 const router = express.Router();
-const SECRET = "my-secret-key";
 
 router.post("/register", async (req, res) => {
   try {
@@ -53,7 +52,9 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Email or password is wrong" });
     }
 
-    const token = jwt.sign({ userId: user._id }, SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
     user.token = token;
     await user.save();
 
