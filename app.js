@@ -3,7 +3,12 @@ const logger = require("morgan");
 const cors = require("cors");
 require("dotenv").config();
 
+const usersAuthRouter = require("./routes/api/auth");
 const contactsRouter = require("./routes/api/contacts");
+const logoutRouter = require("./routes/api/logoutRoutes");
+const usersCurrentRouter = require("./routes/api/currentRoutes");
+
+const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
 
@@ -13,7 +18,15 @@ app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 
+app.use("/api/users/logout", logoutRouter);
+app.use("/api/users/current", usersCurrentRouter);
+app.use("/api/protected", authMiddleware, (req, res) => {
+  res.json({ message: "Protected route accessed successfully" });
+});
+
+app.use("/api/users", usersAuthRouter);
 app.use("/api/contacts", contactsRouter);
+app.use("/api/contacts", authMiddleware, contactsRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: "Not found" });

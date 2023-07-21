@@ -2,20 +2,20 @@ const express = require("express");
 const router = express.Router();
 const contacts = require("../../models/contact");
 const Joi = require("joi");
+const authMiddleware = require("../../middleware/authMiddleware");
 
-// Схема валідації для створення нового контакту
 const createContactSchema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
   phone: Joi.string().required(),
 });
 
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   const allContacts = await contacts.listContacts();
   res.json(allContacts);
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", authMiddleware, async (req, res) => {
   const contactId = req.params.id;
   const contact = await contacts.getContactById(contactId);
 
@@ -26,23 +26,20 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
+router.post("/", authMiddleware, async (req, res, next) => {
   const { name, email, phone } = req.body;
 
-  // Валідація даних
   const { error } = createContactSchema.validate({ name, email, phone });
 
   if (error) {
-    // Обробка помилки валідації
     res.status(400).json({ message: error.details[0].message });
   } else {
-    // Дані є валідними, виконуємо логіку
     const newContact = await contacts.addContact(name, email, phone);
     res.status(201).json(newContact);
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authMiddleware, async (req, res) => {
   const contactId = req.params.id;
   const deletedContact = await contacts.removeContact(contactId);
 
@@ -53,7 +50,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", authMiddleware, async (req, res) => {
   const contactId = req.params.id;
   const updatedFields = req.body;
 
@@ -73,7 +70,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id/favorite", async (req, res) => {
+router.patch("/:id/favorite", authMiddleware, async (req, res) => {
   const contactId = req.params.id;
   const { favorite } = req.body;
 
@@ -96,5 +93,12 @@ router.patch("/:id/favorite", async (req, res) => {
     }
   }
 });
+
+router.get("/", async (req, res) => {
+  const allContacts = await contacts.listContacts();
+  res.json(allContacts);
+});
+
+router.use(authMiddleware);
 
 module.exports = router;
