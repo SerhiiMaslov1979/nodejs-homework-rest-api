@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const logger = require("morgan");
 const cors = require("cors");
 require("dotenv").config();
@@ -9,6 +10,7 @@ const logoutRouter = require("./routes/api/logoutRoutes");
 const usersCurrentRouter = require("./routes/api/currentRoutes");
 
 const authMiddleware = require("./middleware/authMiddleware");
+const { updateUserAvatar, upload } = require("./controllers/userController");
 
 const app = express();
 
@@ -17,6 +19,7 @@ const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/users/logout", logoutRouter);
 app.use("/api/users/current", usersCurrentRouter);
@@ -24,7 +27,12 @@ app.use("/api/protected", authMiddleware, (req, res) => {
   res.json({ message: "Protected route accessed successfully" });
 });
 
-app.use("/api/users", usersAuthRouter);
+app.use("/api/users", upload.single("avatar"), usersAuthRouter);
+
+app.put("/api/users/current", authMiddleware, updateUserAvatar, (req, res) => {
+  res.json({ message: "User profile updated successfully" });
+});
+
 app.use("/api/contacts", contactsRouter);
 app.use("/api/contacts", authMiddleware, contactsRouter);
 
