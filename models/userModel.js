@@ -1,5 +1,6 @@
 const { Schema, model } = require("mongoose");
 const Joi = require("joi");
+const gravatar = require("gravatar");
 
 const { handleDuplicateKeyError } = require("../helpers/handleMongooseError");
 
@@ -27,12 +28,26 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
+    avatarURL: {
+      type: String,
+    },
   },
   { versionKey: false, timestamps: true }
 );
 
 userSchema.post("save", function (error, doc, next) {
   handleDuplicateKeyError(error, next);
+});
+
+userSchema.pre("save", function (next) {
+  if (!this.avatarURL) {
+    this.avatarURL = gravatar.url(this.email, {
+      s: "200",
+      r: "pg",
+      d: "identicon",
+    });
+  }
+  next();
 });
 
 const registerSchema = Joi.object({
