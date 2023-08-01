@@ -24,13 +24,9 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/users/logout", logoutRouter);
 app.use("/api/users/current", usersCurrentRouter);
 app.use("/api/users/avatars", authMiddleware, avatarRoutes);
-app.use("/api/protected", authMiddleware, (req, res) => {
-  res.json({ message: "Protected route accessed successfully" });
-});
 
 app.use("/api/users", usersAuthRouter);
 
-app.use("/api/contacts", contactsRouter);
 app.use("/api/contacts", authMiddleware, contactsRouter);
 
 app.use((req, res) => {
@@ -38,6 +34,7 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  console.log(err);
   res.status(500).json({ message: err.message });
 });
 
